@@ -1,21 +1,18 @@
 package com.fitback.ssu.domain.question;
 
 import com.fitback.ssu.domain.answer.Answer;
-import com.fitback.ssu.domain.question.converter.KeywordConverter;
 import com.fitback.ssu.domain.question.converter.PartConverter;
-import com.fitback.ssu.domain.question.enums.Keyword;
 import com.fitback.ssu.domain.question.enums.Part;
 import com.fitback.ssu.domain.user.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +22,7 @@ import java.util.List;
 public class Question {
     @Column(name = "q_id")
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long qID;
+    private Long qId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -33,15 +30,23 @@ public class Question {
 
     @OneToMany(mappedBy = "question",
             cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @Setter
     private List<Answer> answers = new ArrayList<>();
 
     @Column(name = "part", nullable = false)
     @Convert(converter = PartConverter.class)
     private Part part;
 
-    @Column(name = "keyword")
-    @Convert(converter = KeywordConverter.class)
-    private Keyword keyword;
+//    @Column(name = "keyword")
+//    @Convert(converter = KeywordConverter.class)
+//    private Keyword keyword;
+
+    @OneToMany(mappedBy = "question",
+            cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @Setter
+    private Set<QuestionKeywordMap> keywords = new HashSet<>();
 
     @Column(name = "question_reference")
     private String questionReference;
@@ -65,23 +70,22 @@ public class Question {
     private String endTime;
 
     @Builder
-    public Question(Part part, Keyword keyword,
+    public Question(Part part, User user,
                     String questionReference, String qName, String qContent,
-                    Boolean isPublic, Integer answerCount,
-                    String startTime, String endTime) {
+                    Boolean isPublic, String startTime, String endTime) {
         this.part = part;
-        this.keyword = keyword;
+        this.user = user;
         this.questionReference = questionReference;
         this.qName = qName;
         this.qContent = qContent;
         this.isPublic = isPublic;
-        this.answerCount = answerCount;
+        this.answerCount = 0;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    public LocalDateTime timeConverter(String time){
+    public String timeConverter(String time){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-        return LocalDateTime.parse(time, formatter);
+        return String.valueOf(LocalDateTime.parse(time, formatter));
     }
 }

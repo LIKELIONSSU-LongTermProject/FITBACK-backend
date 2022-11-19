@@ -17,6 +17,12 @@ import java.util.ArrayList;
 @RequestMapping(value = "/main")
 public class MainController {
     private final SearchService searchService;
+
+    /**
+     * 메인화면 개발 질문 리스트
+     * @param keyword
+     * @return
+     */
     @GetMapping(value = "/dev")
     public ArrayList<QuestionInfoDto> devQuestions(
             @RequestParam(value = "keyword",required = false,defaultValue = "dev") String keyword){
@@ -24,12 +30,22 @@ public class MainController {
         return searchService.mainPageInfo(keyword);
     }
 
+    /**
+     * 메인화면 디자인 질문 리스트
+     * @param keyword
+     * @return
+     */
     @GetMapping(value = "/design")
     public ArrayList<QuestionInfoDto> designQuestions(
             @RequestParam(value = "keyword",required = false,defaultValue = "design") String keyword){
         return searchService.mainPageInfo(keyword);
     }
 
+    /**
+     * 메인화면 기획 질문 리스트
+     * @param keyword
+     * @return
+     */
     @GetMapping(value = "/pm")
     public ArrayList<QuestionInfoDto> pmQuestions(
             @RequestParam(value = "keyword",required = false,defaultValue = "pm") String keyword){

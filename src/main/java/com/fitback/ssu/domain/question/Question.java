@@ -60,6 +60,12 @@ public class Question {
     @Column(name = "is_public")
     private Boolean isPublic;
 
+    @Column(name = "is_complete")
+    private Boolean isComplete;
+
+    @Column(name = "req_permission_count")
+    private Integer reqPermissionCount;
+
     @Column(name = "answer_count")
     private Integer answerCount;
 
@@ -79,6 +85,8 @@ public class Question {
         this.qName = qName;
         this.qContent = qContent;
         this.isPublic = isPublic;
+        this.isComplete = false;
+        this.reqPermissionCount = 0;
         this.answerCount = 0;
         this.startTime = startTime;
         this.endTime = endTime;

@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Slf4j
@@ -34,6 +36,8 @@ public class QuestionService {
 
     @Transactional
     public void registerQuestion(QuestionRegisterDto questionRegisterDto){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        String formattedNow = LocalDate.now().format(formatter);
         User user = userRepository.findByEmail(SecurityUtil.getCurrentMemberEmail())
                 .orElseThrow(() -> new BizException(UserExceptionType.NOT_FOUND_USER));
         Question question = questionRepository.save(Question.builder()
@@ -42,7 +46,7 @@ public class QuestionService {
                 .qName(questionRegisterDto.getQuestionName())
                 .qContent(questionRegisterDto.getContent())
                 .isPublic(questionRegisterDto.getIsPublic())
-                .startTime(questionRegisterDto.getStartTime())
+                .startTime(formattedNow)
                 .endTime(questionRegisterDto.getEndTime())
                 .build());
         Set<String> keywords = questionRegisterDto.getKeywords();
@@ -66,7 +70,10 @@ public class QuestionService {
     public QuestionInfoDto getOneQuestion(Long id) throws ParseException {
         Question question = questionRepository.findById(id).get();
         Set<String> keywords = keywordService.makeKeywords(id);
+        User user = userRepository.findByEmail(SecurityUtil.getCurrentMemberEmail())
+                .orElseThrow(() -> new BizException(UserExceptionType.NOT_FOUND_USER));
         return QuestionInfoDto.builder()
+                .isOwn(user.getUserID().equals(question.getUser().getUserID()))
                 .qId(question.getQId())
                 .part(question.getPart())
                 .deadLine(DateUtil.calDeadLine(question.getEndTime(), question.getStartTime()))

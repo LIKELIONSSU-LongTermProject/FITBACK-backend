@@ -10,6 +10,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 public class QuestionInfoDto {
+    private Boolean isOwn;
     private Long qId;
     private Part part;
     private Integer deadLine;
@@ -19,7 +20,8 @@ public class QuestionInfoDto {
     private Set<String> keywords;
 
     @Builder
-    public QuestionInfoDto(Long qId, Part part, Integer deadLine, String questionName, String reference, String contents, Set<String> keywords) {
+    public QuestionInfoDto(Boolean isOwn, Long qId, Part part, Integer deadLine, String questionName, String reference, String contents, Set<String> keywords) {
+        this.isOwn = isOwn;
         this.qId = qId;
         this.part = part;
         this.deadLine = deadLine;

@@ -16,11 +16,13 @@ import java.util.ArrayList;
 @RequestMapping(value = "/feedback")
 public class FeedBackController {
     private final SearchService searchService;
+
+    /**
+     * 피드백 페이지에서 최신 질문 5개 가져오기
+     * @return
+     */
     @GetMapping(value = "/new")
     public ArrayList<QuestionInfoDto> designQuestions(){
         return searchService.newQuestions();
     }
-//    @GetMapping(value = "/order/starttime")
-//    @GetMapping(value = "/order/endtime")
-//    @GetMapping(value = "/order/like")
 }

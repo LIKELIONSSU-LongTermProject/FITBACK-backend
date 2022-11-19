@@ -35,7 +35,7 @@ public class QuestionBoxService {
                 .orElseThrow(() -> new BizException(UserExceptionType.NOT_FOUND_USER));
         if(isProgress){
             ArrayList<QuestionOnProgressBoxDto> questionOnProgressBoxDto = new ArrayList<>();
-            ArrayList<Question> list = questionRepository.findAllByIsCompleteFalseAndUser(true, user);
+            ArrayList<Question> list = questionRepository.findAllByIsCompleteAndUser(true, user);
             list.forEach(
                     question -> {
                         try {
@@ -54,7 +54,7 @@ public class QuestionBoxService {
             return questionOnProgressBoxDto;
         }else {
             ArrayList<QuestionCompleteBoxDto> questionCompleteBoxDto = new ArrayList<>();
-            ArrayList<Question> list = questionRepository.findAllByIsCompleteTrueAndUser(false, user);
+            ArrayList<Question> list = questionRepository.findAllByIsCompleteAndUser(false, user);
             list.forEach(
                     question -> {
                         questionCompleteBoxDto.add(QuestionCompleteBoxDto.builder()
@@ -73,7 +73,7 @@ public class QuestionBoxService {
     @Transactional(readOnly = true)
     public QuestionBoxOneDto checkAnswerReqs(Long qID){
         Question question = questionRepository.findById(qID).get();
-        ArrayList<Answer> answers = answerRepository.findAllByIsPermittedFalseAndQuestion(false, question);
+        ArrayList<Answer> answers = answerRepository.findAllByIsPermittedAndQuestion(false, question);
         ArrayList<QuestionBoxOneDto.AnsReq> ansReqs = new ArrayList<>();
         answers.forEach(
                 answer -> {

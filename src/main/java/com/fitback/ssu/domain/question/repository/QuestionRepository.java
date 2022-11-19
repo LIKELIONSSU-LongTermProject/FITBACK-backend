@@ -20,6 +20,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query(value = "SELECT q FROM Question q ORDER BY q.qId DESC")
     ArrayList<Question> findTop5();
 
-    ArrayList<Question> findAllByIsCompleteFalseAndUser(Boolean isComplete, User user);
-    ArrayList<Question> findAllByIsCompleteTrueAndUser(Boolean isComplete, User user);
+    ArrayList<Question> findAllByIsCompleteAndUser(Boolean isComplete, User user);
+//    ArrayList<Question> findAllByIsCompleteTrueAndUser(Boolean isComplete, User user);
 }

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
     Optional<Answer> findById(Long aID);
-    ArrayList<Answer> findAllByIsPermittedFalseAndQuestion(Boolean isPermitted, Question question);
+    ArrayList<Answer> findAllByIsPermittedAndQuestion(Boolean isPermitted, Question question);
 
     List<Answer> findAllByWriter(User user);
 }

@@ -3,6 +3,7 @@ package com.fitback.ssu.domain.answer;
 import com.fitback.ssu.domain.question.Question;
 import com.fitback.ssu.domain.user.User;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -29,6 +30,9 @@ public class Answer {
     @JoinColumn(name = "q_id")
     private Question question;
 
+    @Column(name = "is_permitted", nullable = false)
+    private Boolean isPermitted;
+
     @Column(name = "answer_reference", nullable = false)
     private String answerReference;
 
@@ -42,5 +46,18 @@ public class Answer {
     @PrePersist
     public void onPrePersist(){
         this.answerTime = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+    }
+
+
+    @Builder
+    public Answer(User writer, Question question,Boolean isPermitted, String answerReference, String answerContent) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        String formattedNow = LocalDate.now().format(formatter);
+        this.writer = writer;
+        this.question = question;
+        this.isPermitted = false;
+        this.answerReference = answerReference;
+        this.answerContent = answerContent;
+        this.answerTime = formattedNow;
     }
 }

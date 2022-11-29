@@ -50,7 +50,7 @@ public class SecurityConfig {
                 "/swagger-ui.html", "/webjars/**","/swagger/**")
                 .antMatchers("/h2-console/**", "/favicon.ico")
                 .antMatchers("/resources/**", "/error")
-                .antMatchers("/auth/**","/main");
+                .antMatchers("/auth/**","/main/**");
     }
 
 

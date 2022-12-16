@@ -1,4 +1,4 @@
-package com.fitback.ssu.util;
+package com.fitback.ssu.util.comparator;
 
 import com.fitback.ssu.dto.question.QuestionInfoDto;
 

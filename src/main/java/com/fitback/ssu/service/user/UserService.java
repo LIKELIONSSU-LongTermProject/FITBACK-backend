@@ -42,6 +42,19 @@ public class UserService {
         return userRepository.findByEmail(SecurityUtil.getCurrentMemberEmail())
                 .map(UserRespDTO::of)
                 .orElseThrow(()->new BizException(UserExceptionType.NOT_FOUND_USER));
+//        User user = userRepository.findByEmail(SecurityUtil.getCurrentMemberEmail())
+//                .orElseThrow(() -> new BizException(UserExceptionType.NOT_FOUND_USER));
+//        if(user.getAuthorities().contains(UserAuth.valueOf("ROLE_PRO"))){
+//
+//        } else if (user.getAuthorities().contains(UserAuth.valueOf("ROLE_BABY"))) {
+//            return BabyPageDto.builder()
+//                    .email(user.getEmail())
+//                    .username(user.getUsername())
+//                    .build();
+//        }else{
+//
+//        }
+//        return null;
     }
 
 
@@ -57,4 +70,5 @@ public class UserService {
 
         user.updateUser(dto,passwordEncoder);
     }
+
 }

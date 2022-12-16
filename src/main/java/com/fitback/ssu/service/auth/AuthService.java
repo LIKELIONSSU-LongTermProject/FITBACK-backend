@@ -7,9 +7,15 @@ import com.fitback.ssu.domain.jwt.RefreshToken;
 import com.fitback.ssu.domain.jwt.RefreshTokenRepository;
 import com.fitback.ssu.domain.user.User;
 import com.fitback.ssu.domain.user.UserRepository;
+import com.fitback.ssu.domain.user.info.*;
 import com.fitback.ssu.dto.jwt.TokenDTO;
 import com.fitback.ssu.dto.jwt.TokenReqDTO;
 import com.fitback.ssu.dto.login.LoginReqDTO;
+import com.fitback.ssu.dto.login.LoginRespDto;
+import com.fitback.ssu.dto.signup.BabySignupDto;
+import com.fitback.ssu.dto.signup.ProCheckDto;
+import com.fitback.ssu.dto.signup.ProSignup1Dto;
+import com.fitback.ssu.dto.signup.ProSignup2Dto;
 import com.fitback.ssu.dto.user.UserReqDTO;
 import com.fitback.ssu.dto.user.UserRespDTO;
 import com.fitback.ssu.exception.AuthorityExceptionType;
@@ -19,13 +25,18 @@ import com.fitback.ssu.exception.UserExceptionType;
 import com.fitback.ssu.jwt.CustomEmailPasswordAuthToken;
 import com.fitback.ssu.jwt.TokenProvider;
 import com.fitback.ssu.service.user.CustomUserDetailsService;
+import com.fitback.ssu.service.user.EmailService;
+import com.fitback.ssu.util.OCR;
+import com.fitback.ssu.util.s3.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,14 +45,21 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
+    private final FileUploadService fileUploadService;
+    private final BabyInfoRepository babyInfoRepository;
     private final UserRepository userRepository;
+    private final InterestCompanyRepository interestCompanyRepository;
+    private final InterestDutyRepository interestDutyRepository;
+    private final ProInfoRepository proInfoRepository;
+    @Value("${RESOURCE_S3}")
+    private String RESOURCE_S3;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final CustomUserDetailsService customUserDetailsService;
-
 
     @Transactional
     public UserRespDTO signup(UserReqDTO userReqDTO) {
@@ -54,7 +72,7 @@ public class AuthService {
                         () -> new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
 
         Set<Authority> set = new HashSet<>();
-        set.add(authority); // 기본적으로 ROLE_USER 권한 부여여
+        set.add(authority); // 기본적으로 ROLE_USER 권한 부여
 
        // 회원가입시 현직자인지 초보자인지 체크해서 ROLE 세팅
         if(userReqDTO.getIsPro() == true){
@@ -71,27 +89,150 @@ public class AuthService {
     }
 
     @Transactional
+    public void babySignup(MultipartFile image, BabySignupDto babySignupDto) {
+        if(userRepository.existsByEmail(babySignupDto.getEmail())){
+            throw new BizException(UserExceptionType.DUPLICATE_USER);
+        }
+
+        Authority authority = authorityRepository
+                .findAuthorityByAuthorityName(UserAuth.ROLE_USER).orElseThrow(
+                        () -> new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
+
+        Set<Authority> set = new HashSet<>();
+        set.add(authority); // 기본적으로 ROLE_USER 권한 부여
+        set.add(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_BABY)
+                .orElseThrow(() -> new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY)));
+
+        User user = babySignupDto.toMember(passwordEncoder, set, true, null);
+
+        String imageUrl = RESOURCE_S3 + fileUploadService.save(image).getPath();
+
+        BabyInfo babyInfo = babyInfoRepository.save(BabyInfo.builder()
+                .user(user)
+                .imageUrl(imageUrl)
+                .nickname(babySignupDto.getNickname())
+                .build());
+        babySignupDto.getInterestCompanies().forEach(
+                interest -> interestCompanyRepository.save(InterestCompany.builder()
+                                .babyInfo(babyInfo)
+                                .interestCompany(interest)
+                                .build())
+        );
+        babySignupDto.getInterestCompanies().forEach(
+                interest -> interestDutyRepository.save(InterestDuty.builder()
+                        .babyInfo(babyInfo)
+                        .interestDuty(interest)
+                        .build())
+        );
+        user.setBabyInfo(babyInfo);
+        log.debug("user = {}", user);
+    }
+
+    @Transactional
+    public void proSignup1(ProSignup1Dto proSignup1Dto) {
+        if(userRepository.existsByEmail(proSignup1Dto.getEmail())){
+            throw new BizException(UserExceptionType.DUPLICATE_USER);
+        }
+
+        Authority authority = authorityRepository
+                .findAuthorityByAuthorityName(UserAuth.ROLE_USER).orElseThrow(
+                        () -> new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
+
+        Set<Authority> set = new HashSet<>();
+        set.add(authority); // 기본적으로 ROLE_USER 권한 부여
+        set.add(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_PRO)
+                .orElseThrow(() -> new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY)));
+
+        User user = proSignup1Dto.toMember(passwordEncoder, set, false, null);
+        ProInfo proInfo = proInfoRepository.save(ProInfo.builder()
+                .user(user).company(proSignup1Dto.getCompany())
+                .duty(proSignup1Dto.getDuty()).annual(proSignup1Dto.getAnnual())
+                .build());
+        user.setProInfo(proInfo);
+        log.debug("user = {}", user);
+    }
+
+    @Transactional
+    public void sendEmailCheckCode(String email) throws Exception {
+        User user = userRepository.findByEmail(email).get();
+        ProInfo proInfo = user.getProInfo();
+        proInfo.setEmailCheckCode(emailService.sendSimpleMessage(email));
+    }
+
+    @Transactional
+    public void checkEmailCheckCode(String email, String emailCheckCode) throws Exception {
+        User user = userRepository.findByEmail(email).get();
+        ProInfo proInfo = user.getProInfo();
+        if (proInfo.getEmailCheckCode().equals(emailCheckCode)){
+            proInfo.setEmailCheck(true);
+        }else {
+            throw new BizException(UserExceptionType.INVAILD_EMAIL_CHECK);
+        }
+    }
+
+    @Transactional
+    public void proCheck(MultipartFile card, ProCheckDto proCheckDto) {
+        User user = userRepository.findByEmail(proCheckDto.getEmail()).get();
+        ProInfo proInfo = user.getProInfo();
+
+        String extractEmail = OCR.extractEmail(card);
+        System.out.println(extractEmail);
+
+        if(proInfo.getEmailCheckCode().equals(proCheckDto.getEmailCheckCode()) && proInfo.getEmailCheck()){
+            if(user.getEmail().equals(proCheckDto.getEmail())){
+                user.setActivated(true);
+                proInfo.setCardCheck(true);
+            }else{
+                throw new BizException(UserExceptionType.INVAILD_CARD);
+            }
+        }else{
+            throw new BizException(UserExceptionType.INVAILD_EMAIL_CHECK);
+        }
+    }
+
+    @Transactional
+    public void proSignup2(MultipartFile image, ProSignup2Dto proSignup2Dto) {
+        User user = userRepository.findByEmail(proSignup2Dto.getEmail()).get();
+        ProInfo proInfo = user.getProInfo();
+
+        String imageUrl = RESOURCE_S3 + fileUploadService.save(image).getPath();
+
+        proInfo.setImageUrl(imageUrl);
+        proInfo.setNickname(proSignup2Dto.getNickname());
+        proInfo.setShortIntro(proSignup2Dto.getShortIntro());
+        proInfo.setLongIntro(proSignup2Dto.getLongIntro());
+        proInfo.setExpressionExperience(proSignup2Dto.getExpressionExperience());
+        proInfo.setExpressionCompany(proSignup2Dto.getExpressionCompany());
+        proInfo.setExpressionSpeaking(proSignup2Dto.getExpressionSpeaking());
+        proInfo.setExpressionPart(proSignup2Dto.getExpressionPart());
+        proInfo.setExpressionStrength(proSignup2Dto.getExpressionStrength());
+        log.debug("user = {}", user);
+    }
+
+    @Transactional
     public TokenDTO login(LoginReqDTO loginReqDTO){
         CustomEmailPasswordAuthToken customEmailPasswordAuthToken = new CustomEmailPasswordAuthToken(
                 loginReqDTO.getEmail(), loginReqDTO.getPassword());
         Authentication authenticate = authenticationManager.authenticate(customEmailPasswordAuthToken);
         String email = authenticate.getName();
         User user = customUserDetailsService.getUser(email);
-        user.setActivated(true);
+        if(user.isActivated()) {
 
-        String accessToken = tokenProvider.createAccessToken(email, user.getAuthorities());
-        String refreshToken = tokenProvider.createRefreshToken(email, user.getAuthorities());
+            String accessToken = tokenProvider.createAccessToken(email, user.getAuthorities());
+            String refreshToken = tokenProvider.createRefreshToken(email, user.getAuthorities());
 
-        // refreshToken 저장
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .tokenKey(email)
-                        .value(refreshToken)
-                        .build()
-        );
+            // refreshToken 저장
+            refreshTokenRepository.save(
+                    RefreshToken.builder()
+                            .tokenKey(email)
+                            .value(refreshToken)
+                            .build()
+            );
 
-        return tokenProvider.createTokenDTO(accessToken, refreshToken);
-
+            return tokenProvider.createTokenDTO(accessToken, refreshToken);
+        }else{
+            throw new BizException(UserExceptionType.INVAILD_USER);
+        }
     }
 
     @Transactional
@@ -143,5 +284,15 @@ public class AuthService {
 
         // 토큰 발금
         return tokenDTO;
+    }
+
+    @Transactional(readOnly = true)
+    public LoginRespDto loginData(LoginReqDTO loginReqDTO) {
+        User user = userRepository.findByEmail(loginReqDTO.getEmail()).get();
+        TokenDTO tokenDTO = login(loginReqDTO);
+        return LoginRespDto.builder()
+                .uid(user.getUserID())
+                .tokenDTO(tokenDTO)
+                .build();
     }
 }

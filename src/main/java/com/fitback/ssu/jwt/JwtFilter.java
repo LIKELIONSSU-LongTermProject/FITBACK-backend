@@ -51,7 +51,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 log.debug("flag = {}", flag);
                 if(flag == 1) { // 유효한 토큰
-                    System.out.println("check flag 1");
                     this.setAuthentication(token);
                 } else if (flag == 2) { // 토큰 만료
                     // Filter에서는 @ExceptionHandler가 먹히지 않아서 response 하드 코딩

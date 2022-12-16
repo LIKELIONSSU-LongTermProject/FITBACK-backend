@@ -1,6 +1,6 @@
 package com.fitback.ssu.dto.question;
 
-import com.fitback.ssu.domain.question.enums.Part;
+import com.fitback.ssu.domain.regacy.enums.Part;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;

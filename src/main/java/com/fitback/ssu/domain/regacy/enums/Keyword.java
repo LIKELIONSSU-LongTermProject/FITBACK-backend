@@ -1,6 +1,6 @@
-package com.fitback.ssu.domain.question.enums;
+package com.fitback.ssu.domain.regacy.enums;
 
-import com.fitback.ssu.domain.question.converter.CodeValue;
+import com.fitback.ssu.domain.regacy.converter.CodeValue;
 
 public enum Keyword implements CodeValue {
     NextJS("F1","Next.JS"),

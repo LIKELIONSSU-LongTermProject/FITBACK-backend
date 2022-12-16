@@ -1,6 +1,6 @@
-package com.fitback.ssu.domain.question.repository;
+package com.fitback.ssu.domain.regacy.repository;
 
-import com.fitback.ssu.domain.question.Keyword;
+import com.fitback.ssu.domain.regacy.Keyword;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

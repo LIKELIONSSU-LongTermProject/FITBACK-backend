@@ -1,4 +1,4 @@
-package com.fitback.ssu.domain.question.converter;
+package com.fitback.ssu.domain.regacy.converter;
 
 public interface CodeValue {
     String getCode();

@@ -1,4 +1,4 @@
-package com.fitback.ssu.domain.question;
+package com.fitback.ssu.domain.regacy;
 
 import lombok.AccessLevel;
 import lombok.Builder;

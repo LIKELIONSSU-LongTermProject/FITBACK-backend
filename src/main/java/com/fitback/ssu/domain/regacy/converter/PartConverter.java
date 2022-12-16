@@ -1,6 +1,6 @@
-package com.fitback.ssu.domain.question.converter;
+package com.fitback.ssu.domain.regacy.converter;
 
-import com.fitback.ssu.domain.question.enums.Part;
+import com.fitback.ssu.domain.regacy.enums.Part;
 
 import javax.persistence.Converter;
 

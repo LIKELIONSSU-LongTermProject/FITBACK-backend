@@ -144,3 +144,4 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij
+!/lustrous-braid-369502-7d4eceb6bf21.json

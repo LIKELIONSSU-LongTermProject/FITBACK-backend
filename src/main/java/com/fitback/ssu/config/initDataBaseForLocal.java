@@ -3,9 +3,7 @@ package com.fitback.ssu.config;
 import com.fitback.ssu.domain.authority.Authority;
 import com.fitback.ssu.domain.authority.AuthorityRepository;
 import com.fitback.ssu.domain.authority.UserAuth;
-import com.fitback.ssu.domain.user.User;
 import com.fitback.ssu.domain.user.UserRepository;
-import com.fitback.ssu.dto.user.UserReqDTO;
 import com.fitback.ssu.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -48,46 +46,46 @@ public class initDataBaseForLocal {
             authorityRepository.save(new Authority(UserAuth.ROLE_PRO));
 
 
-            authService.signup(new UserReqDTO(
-                    "admin@admin.com",
-                    "1234",
-                    "admin1",
-                    false
-            ));
-
-            authService.signup(new UserReqDTO(
-                    "user@user.com",
-                    "1234",
-                    "user1",
-                    false
-            ));
-
-            authService.signup(new UserReqDTO(
-                    "pro@pro.com",
-                    "1234",
-                    "pro",
-                    true
-            ));
-
-            authService.signup(new UserReqDTO(
-                    "baby@baby.com",
-                    "1234",
-                    "baby",
-                    false
-            ));
-
-            User admin = userRepository.findByEmail("admin@admin.com").get();
-            User user = userRepository.findByEmail("user@user.com").get();
-            User pro = userRepository.findByEmail("pro@pro.com").get();
-            User baby = userRepository.findByEmail("baby@baby.com").get();
-
-            admin.addAuthority(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_ADMIN).get());
-            admin.activate(true);
-            user.activate(true);
-            pro.addAuthority(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_PRO).get());
-            pro.activate(true);
-            baby.addAuthority(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_BABY).get());
-            baby.activate(true);
+//            authService.signup(new UserReqDTO(
+//                    "admin@admin.com",
+//                    "1234",
+//                    "admin1",
+//                    false
+//            ));
+//
+//            authService.signup(new UserReqDTO(
+//                    "user@user.com",
+//                    "1234",
+//                    "user1",
+//                    false
+//            ));
+//
+//            authService.signup(new UserReqDTO(
+//                    "pro@pro.com",
+//                    "1234",
+//                    "pro",
+//                    true
+//            ));
+//
+//            authService.signup(new UserReqDTO(
+//                    "baby@baby.com",
+//                    "1234",
+//                    "baby",
+//                    false
+//            ));
+//
+//            User admin = userRepository.findByEmail("admin@admin.com").get();
+//            User user = userRepository.findByEmail("user@user.com").get();
+//            User pro = userRepository.findByEmail("pro@pro.com").get();
+//            User baby = userRepository.findByEmail("baby@baby.com").get();
+//
+//            admin.addAuthority(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_ADMIN).get());
+//            admin.activate(true);
+//            user.activate(true);
+//            pro.addAuthority(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_PRO).get());
+//            pro.activate(true);
+//            baby.addAuthority(authorityRepository.findAuthorityByAuthorityName(UserAuth.ROLE_BABY).get());
+//            baby.activate(true);
         }
     }
 }

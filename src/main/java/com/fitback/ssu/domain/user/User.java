@@ -1,15 +1,14 @@
 package com.fitback.ssu.domain.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fitback.ssu.domain.answer.Answer;
 import com.fitback.ssu.domain.authority.Authority;
 import com.fitback.ssu.domain.authority.UserAuth;
-import com.fitback.ssu.domain.question.Question;
+import com.fitback.ssu.domain.data.Answer;
+import com.fitback.ssu.domain.data.Question;
+import com.fitback.ssu.domain.user.info.BabyInfo;
+import com.fitback.ssu.domain.user.info.ProInfo;
 import com.fitback.ssu.dto.user.UserUpdateDTO;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
@@ -19,7 +18,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "User")
@@ -28,7 +28,7 @@ public class User{
 
     @JsonIgnore
     @Column(name = "user_id")
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long userID;
 
     @Column(name = "username",length = 50, nullable = false)
@@ -41,19 +41,38 @@ public class User{
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "birth", nullable = false)
+    private String birth;
+
     @Column(name = "peanut")
     private Integer peanut;
+
     @JsonIgnore
     @Column(name = "activated")
     private boolean activated;
 
-    @OneToMany(mappedBy = "user",
+    @OneToMany(mappedBy = "questioner",
                 cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "writer",
+//    @OneToOne(mappedBy = "answerer",
+//            cascade = CascadeType.ALL, orphanRemoval = true)
+//    private AnswerRequest answerRequest;
+
+    @OneToMany(mappedBy = "answerer",
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "baby_info_id")
+    private BabyInfo babyInfo;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "pro_info_id")
+    private ProInfo proInfo;
 
     @ManyToMany
     @JoinTable(
@@ -64,13 +83,18 @@ public class User{
     private Set<Authority> authorities = new HashSet<>();
 
     @Builder
-    public User(String username, String email, String password, Integer peanut, boolean activated, Set<Authority> authorities) {
+    public User(String username, String birth, String email, String password, String status,
+                Integer peanut, boolean activated, Set<Authority> authorities, BabyInfo babyInfo, ProInfo proInfo) {
         this.username = username;
+        this.birth = birth;
         this.email = email;
         this.password = password;
+        this.status = status;
         this.peanut = peanut;
         this.activated = activated;
         this.authorities = authorities;
+        this.babyInfo = babyInfo;
+        this.proInfo = proInfo;
     }
 
     public void addAuthority(Authority authority){
